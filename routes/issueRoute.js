@@ -1,6 +1,6 @@
 module.exports = function (app) {
 
-    var controller = app.controllers.issueController,
+    let controller = app.controllers.issueController,
         baseRoute = app.routes.baseRoute;
 
     app.route('/issues')

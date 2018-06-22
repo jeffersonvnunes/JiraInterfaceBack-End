@@ -33,10 +33,11 @@ module.exports = function (app) {
 
                     try {
                         for( let i = 0; i < data.length; i++){
-                            components.push({});
-                            components[i].id = data[i].id;
-                            components[i].name = data[i].name;
-                            components[i].projectId = data[i].projectId;
+                            components.push({
+                                id: data[i].id,
+                                name: data[i].name,
+                                projectId: data[i].projectId
+                            });
                         }
 
                         res.json(components);

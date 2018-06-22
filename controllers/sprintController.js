@@ -2,8 +2,10 @@ module.exports = function (app) {
     let Controller = require('./baseController'),
         controller = new Controller();
 
+
     controller.getListIssues = function(req, res){
-        let http = require('https');
+        let http = require('https'),
+            util = require('../lib/appUtils')();
 
         function processRequest(jql) {
 
@@ -32,16 +34,7 @@ module.exports = function (app) {
                 resp.on('end', function () {
 
                     try {
-                        let issues = [],
-                            data = JSON.parse(dataString);
-
-                        for( let i = 0; i < data.issues.length; i++){
-                            issues.push({});
-                            issues[i].key = data.issues[i].key;
-                            issues[i].summary = data.issues[i].fields.summary;
-                            issues[i].issuetype = data.issues[i].fields.issuetype.name;
-                            issues[i].status = data.issues[i].fields.status.name;
-                        }
+                        let issues = util.parseIssues(JSON.parse(dataString));
 
                         res.json(issues);
                     } catch (erro) {

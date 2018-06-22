@@ -1,6 +1,6 @@
 module.exports = function (app) {
 
-    var route = {};
+    let route = {};
 
     route.config = function (name, controller){
         app.route('/'+name)

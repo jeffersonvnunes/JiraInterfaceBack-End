@@ -1,4 +1,4 @@
-var http = require('http'),
+let http = require('http'),
     app = require('./config/express')();
 
 http.createServer(app).listen(app.get('port'), function(){

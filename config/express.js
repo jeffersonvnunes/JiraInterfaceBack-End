@@ -1,9 +1,9 @@
-var express = require('express'),
+let express = require('express'),
     load = require('express-load'),
     bodyParser = require('body-parser');
 
 module.exports = function() {
-    var app = express();
+    let app = express();
 
     app.use(function (req, res, next) {
 
@@ -18,7 +18,7 @@ module.exports = function() {
         next();
     });
 
-    app.set('tokenJira', CHAVE_JIRA);
+    app.set('tokenJira', JIRA_KEY);
 
     app.set('port', 3000);
 

@@ -1,41 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Jira Servimex</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-</head>
-<body>
-    <h2> Atividades Sprint 2</h2>
-    <div class="container">
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Chave</th>
-            <th>Tipo</th>
-            <th>Situação</th>
-            <th>Resumo</th>
-        </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-    </div>
-</body>
-<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-<script>
-    function loadData() {
-        $.getJSON( 'http://localhost:3000/issues', function( response ) {
-            var $tbody = $('tbody');
-
-            for(var i = 0; i <= response.length; i++ ){
-                $tbody.append('<tr><td>'+response[i].key+'</td>'
-                    +'<td>'+response[i].issuetype+'</td>'
-                    +'<td>'+response[i].status+'</td>'
-                    +'<td>'+response[i].summary+'</td></tr>');
-            }
-        });
-    }
-    loadData();
-</script>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <link rel="stylesheet" href="/style/style.css">
+        <title>Jira Interface</title>
+    </head>
+    <body>
+        <div class="container"></div>
+    </body>
+    <script src="/bundle.js"></script>
 </html>

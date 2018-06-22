@@ -1,6 +1,6 @@
 module.exports = function () {
 
-    var controller = {};
+    let controller = {};
 
     controller.Model = null;
 
@@ -20,7 +20,7 @@ module.exports = function () {
 
     controller.getModel = function(req, res) {
 
-        var _id = req.params.id;
+        let _id = req.params.id;
         controller.Model.findById(_id).exec()
             .then(
                 function(model) {
@@ -39,7 +39,7 @@ module.exports = function () {
 
     controller.removeModel = function(req, res) {
 
-        var _id = req.params.id;
+        let _id = req.params.id;
         controller.Model.remove({"_id" : _id}).exec()
             .then(
                 function() {
@@ -53,7 +53,7 @@ module.exports = function () {
 
     controller.saveModel = function(req, res) {
 
-        var _id = req.body._id;
+        let _id = req.body._id;
 
         if(_id) {
             controller.Model.findByIdAndUpdate(_id, req.body, {new:true}).exec()
@@ -82,7 +82,7 @@ module.exports = function () {
 
     controller.updateModel = function(req, res) {
 
-        var _id = req.params.id;
+        let _id = req.params.id;
 
         controller.Model.findByIdAndUpdate(_id, req.body, {new:true}).exec()
             .then(
