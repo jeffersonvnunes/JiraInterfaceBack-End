@@ -22,6 +22,9 @@ module.exports = function() {
 
     app.set('port', 3000);
 
+    app.set('useProxy', false);
+    app.set('proxy', 'host');
+
     app.use(express.static('./public'));
 
 

@@ -4,8 +4,9 @@ module.exports = function (app) {
 
 
     controller.getListIssues = function(req, resp){
-        let http = require('https'),
-            util = require('../lib/appUtils')();
+        const http = require('https'),
+              util = require('../lib/appUtils')(),
+              HttpsProxyAgent = require('https-proxy-agent');
 
         let totalItems = 0;
 
@@ -13,16 +14,19 @@ module.exports = function (app) {
 
         function processRequest(jql, startAt = 0) {
 
-            jql = jql !== undefined && jql !== '' ? ' and ' + jql : '';
+            jql = jql !== undefined && jql !== '' ? jql + ' and '  : '';
+
+            const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
 
             let options = {
                 host: 'servimex.atlassian.net',
-                path: `/rest/agile/1.0/sprint/6/issue?jql=issuetype%20not%20in%20(Epic%2C%20Sub-task)%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
+                path: `/rest/agile/1.0/sprint/7/issue?jql=${encodeURI(jql)}issuetype%20not%20in%20(Epic%2C%20Sub-task)%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization':'Basic '+ app.get('tokenJira')
-                }
+                },
+                agent: agent
             };
 
             let dataString = '';
@@ -51,22 +55,26 @@ module.exports = function (app) {
                         }
                     } catch (erro) {
                         console.log("Got error: " + erro.message);
-                        res.status(500).send(erro.message);
+                        resp.status(500).send(erro.message);
                     }
                 });
             });
 
             req.on("error", function (e) {
                 console.log("Got error: " + e.message);
-                res.status(500).send(e.message);
+                resp.status(500).send(e.message);
             });
 
 
             req.end();
         }
 
-        processRequest(req.query.jql);
-
+        try{
+            processRequest(req.query.jql);
+        }catch (e) {
+            console.log("Got error: " + e.message);
+            resp.status(500).send(e.message);
+        }
     };
 
     return controller;

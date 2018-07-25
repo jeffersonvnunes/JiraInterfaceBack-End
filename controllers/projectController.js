@@ -4,9 +4,13 @@ module.exports = function (app) {
     let controller = new Controller();
 
     controller.getListComponents = function(req, res){
-        const http = require('https');
+        const http = require('https'),
+              HttpsProxyAgent = require('https-proxy-agent');
 
         function processRequest(projectId) {
+
+            const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
+
             let options = {
                 host: 'servimex.atlassian.net',
                 path: '/rest/api/2/project/'+projectId+'/components',
@@ -14,7 +18,8 @@ module.exports = function (app) {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization':'Basic '+ app.get('tokenJira')
-                }
+                },
+                agent: agent
             };
 
             let dataString = '';
@@ -55,8 +60,12 @@ module.exports = function (app) {
 
             req.end();
         }
-
-        processRequest(req.params.projectId);
+        try{
+            processRequest(req.params.projectId);
+        } catch (erro) {
+            console.log("Got error: " + e.message);
+            res.status(500).send(e.message);
+        }
     };
 
     return controller;

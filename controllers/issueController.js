@@ -5,7 +5,8 @@ module.exports = function (app) {
 
     controller.getListIssues = function(req, resp){
         let http = require('https'),
-            util = require('../lib/appUtils')();
+            util = require('../lib/appUtils')(),
+            HttpsProxyAgent = require('https-proxy-agent');
 
         let totalItems = 0;
 
@@ -13,16 +14,19 @@ module.exports = function (app) {
 
         function processRequest(jql, startAt = 0) {
 
-            jql = jql !== undefined && jql !== '' ? '?jql=' + jql : '';
+            jql = jql !== undefined && jql !== '' ? jql + ' and '  : '';
+
+            const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
 
             let options = {
                 host: 'servimex.atlassian.net',
-                path: `/rest/api/2/search?jql=project=SERV%20AND%20issuetype%20not%20in%20(Epic%2C%20Sub-task)%20AND%20Sprint%20is%20EMPTY%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
+                path: `/rest/api/2/search?jql=${encodeURI(jql)}project=SERV%20AND%20issuetype%20not%20in%20(Epic%2C%20Sub-task)%20AND%20Sprint%20is%20EMPTY%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization':'Basic '+ app.get('tokenJira')
-                }
+                },
+                agent: agent
             };
 
             let dataString = '';
@@ -66,7 +70,12 @@ module.exports = function (app) {
             req.end();
         }
 
-        processRequest(req.query.jql);
+        try{
+            processRequest(req.query.jql);
+        }catch (e) {
+            console.log("Got error: " + e.message);
+            resp.status(500).send(e.message);
+        }
 
     };
 
