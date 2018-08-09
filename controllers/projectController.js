@@ -33,10 +33,10 @@ module.exports = function (app) {
                 });
 
                 resp.on('end', function () {
-                    let components = [],
-                        data = JSON.parse(dataString);
-
                     try {
+                        let components = [],
+                            data = JSON.parse(dataString);
+
                         for( let i = 0; i < data.length; i++){
                             components.push({
                                 id: data[i].id,
@@ -47,14 +47,14 @@ module.exports = function (app) {
 
                         res.json(components);
                     } catch (erro) {
-                        console.log("Got error: " + erro.message);
+                        console.log("Got error end: " + erro.message);
                         res.status(500).send(erro.message);
                     }
                 });
             });
 
             req.on("error", function (e) {
-                console.log("Got error: " + e.message);
+                console.log("Got error request: " + e.message);
                 res.status(500).send(e.message);
             });
 

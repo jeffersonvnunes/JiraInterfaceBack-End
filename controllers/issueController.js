@@ -55,14 +55,14 @@ module.exports = function (app) {
                         }
 
                     } catch (erro) {
-                        console.log("Got error: " + erro.message);
+                        console.log("Got error end: " + erro.message);
                         resp.status(500).send(erro.message);
                     }
                 });
             });
 
             req.on("error", function (e) {
-                console.log("Got error: " + e.message);
+                console.log("Got error request: " + e.message);
                 resp.status(500).send(e.message);
             });
 
