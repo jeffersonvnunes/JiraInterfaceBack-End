@@ -24,7 +24,7 @@ module.exports = function (app) {
 
             let dataString = '';
 
-            let req = http.request(options, function (resp) {
+            let httpReq = http.request(options, function (resp) {
                 resp.setEncoding('utf8');
                 resp.on('data', function (chunk) {
                     if (chunk !== null && chunk !== '') {
@@ -53,12 +53,12 @@ module.exports = function (app) {
                 });
             });
 
-            req.on("error", function (e) {
+            httpReq.on("error", function (e) {
                 console.log("Got error request: " + e.message);
                 res.status(500).send(e.message);
             });
 
-            req.end();
+            httpReq.end();
         }
         try{
             processRequest(req.params.projectId);

@@ -20,7 +20,7 @@ module.exports = function (app) {
 
             let options = {
                 host: 'servimex.atlassian.net',
-                path: `/rest/agile/1.0/sprint/7/issue?jql=${encodeURI(jql)}issuetype%20not%20in%20(Epic%2C%20Sub-task)%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
+                path: `/rest/agile/1.0/sprint/8/issue?jql=${encodeURI(jql)}issuetype%20not%20in%20(Epic%2C%20Sub-task)%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -31,7 +31,7 @@ module.exports = function (app) {
 
             let dataString = '';
 
-            let req = https.request(options, function (httpResp) {
+            let httpReq = https.request(options, function (httpResp) {
                 httpResp.setEncoding('utf8');
                 httpResp.on('data', function (chunk) {
                     if (chunk !== null && chunk !== '') {
@@ -60,13 +60,12 @@ module.exports = function (app) {
                 });
             });
 
-            req.on("error", function (e) {
+            httpReq.on("error", function (e) {
                 console.log("Got error request: " + e.message);
                 resp.status(500).send(e.message);
             });
 
-
-            req.end();
+            httpReq.end();
         }
 
         try{

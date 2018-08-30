@@ -1,13 +1,12 @@
 module.exports = function (app) {
 
     let Controller = require('./baseController'),
+        http = require('https'),
+        util = require('../lib/appUtils')(),
+        HttpsProxyAgent = require('https-proxy-agent'),
         controller = new Controller();
 
     controller.getListIssues = function(req, resp){
-        let http = require('https'),
-            util = require('../lib/appUtils')(),
-            HttpsProxyAgent = require('https-proxy-agent');
-
         let totalItems = 0;
 
         let items = [];
@@ -31,7 +30,7 @@ module.exports = function (app) {
 
             let dataString = '';
 
-            let req = http.request(options, function (httpResp) {
+            let httpReq = http.request(options, function (httpResp) {
                 httpResp.setEncoding('utf8');
                 httpResp.on('data', function (chunk) {
                     if (chunk !== null && chunk !== '') {
@@ -61,13 +60,13 @@ module.exports = function (app) {
                 });
             });
 
-            req.on("error", function (e) {
+            httpReq.on("error", function (e) {
                 console.log("Got error request: " + e.message);
                 resp.status(500).send(e.message);
             });
 
             //req.write(JSON.stringify(reqBody));
-            req.end();
+            httpReq.end();
         }
 
         try{
@@ -77,6 +76,123 @@ module.exports = function (app) {
             resp.status(500).send(e.message);
         }
 
+    };
+
+    controller.getIssue = function(req, resp){
+        function processRequest(key) {
+            const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
+
+            let options = {
+                host: 'servimex.atlassian.net',
+                path: `/rest/api/2/issue/${key}`,
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization':'Basic '+ app.get('tokenJira')
+                },
+                agent: agent
+            };
+
+            let dataString = '';
+
+            let httpReq = http.request(options, function (httpResp) {
+                httpResp.setEncoding('utf8');
+                httpResp.on('data', function (chunk) {
+                    if (chunk !== null && chunk !== '') {
+                        dataString += chunk;
+                    }
+                });
+
+                httpResp.on('end', function () {
+                    console.log('status code', httpResp.statusCode);
+                    try {
+                        let data = JSON.parse(dataString),
+                            issue = {
+                                issues: []
+                            };
+
+                        if(data.errorMessages){
+                            resp.status(httpResp.statusCode).send(data);
+                        }else{
+                            issue.issues.push(data);
+                            issue = util.parseIssues(issue)[0];
+                            resp.json(issue);
+                        }
+                    } catch (erro) {
+                        console.log("Got error end: " + erro.message);
+                        resp.status(500).send(erro.message);
+                    }
+                });
+            });
+
+            httpReq.on("error", function (e) {
+                console.log("Got error request: " + e.message);
+                resp.status(500).send(e.message);
+            });
+
+            httpReq.end();
+        }
+
+        try{
+            processRequest(req.params.key);
+        }catch (e) {
+            console.log("Got error: " + e.message);
+            resp.status(500).send(e.message);
+        }
+    };
+
+    controller.getFile = function(req, resp){
+        function processRequest(body) {
+            const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
+
+            let options = {
+                host: 'servimex.atlassian.net',
+                path: body.file,
+                method: 'GET',
+                headers: {
+                    'Authorization':'Basic '+ app.get('tokenJira'),
+                    'X-Atlassian-Token': 'no-check'
+                },
+                agent: agent
+            };
+
+            let dataString = '';
+
+            let httpReq = http.request(options, function (httpResp) {
+                httpResp.setEncoding('utf8');
+                httpResp.on('data', function (chunk) {
+                    if (chunk !== null && chunk !== '') {
+                        dataString += chunk;
+                    }
+                });
+
+                httpResp.on('end', function () {
+                    console.log('status code', httpResp.statusCode);
+                    if(httpResp.statusCode = 302){
+                        let file = {
+                          uri: httpResp.headers.location
+                        };
+                        resp.json(file);
+                    }else{
+                        resp.status(httpResp.statusCode).send(dataString);
+                    }
+                });
+            });
+
+            httpReq.on("error", function (e) {
+                console.log("Got error request: " + e.message);
+                resp.status(500).send(e.message);
+            });
+
+            httpReq.end();
+        }
+
+        try{
+            processRequest(req.body);
+        }catch (e) {
+            console.log("Got error: " + e.message);
+            resp.status(500).send(e.message);
+        }
     };
 
     return controller;
