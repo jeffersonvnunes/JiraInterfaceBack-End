@@ -84,7 +84,7 @@ module.exports = function (app) {
 
             let options = {
                 host: 'servimex.atlassian.net',
-                path: `/rest/api/2/issue/${key}`,
+                path: `/rest/api/2/issue/${key}?expand=renderedFields`,
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
