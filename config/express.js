@@ -1,6 +1,7 @@
-let express = require('express'),
-    load = require('express-load'),
-    bodyParser = require('body-parser');
+const express = require('express'),
+      load = require('express-load'),
+      bodyParser = require('body-parser'),
+      path = require('path');
 
 module.exports = function() {
     let app = express();
@@ -35,6 +36,10 @@ module.exports = function() {
     load('models').into(app);
     load('controllers/baseController.js').then('controllers').into(app);
     load('routes/baseRoute.js').then('routes').into(app);
+
+    app.get('*', function (request, response){
+        response.sendFile(path.resolve('.', 'public', 'index.html'))
+    })
 
     return app;
 };

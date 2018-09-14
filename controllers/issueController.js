@@ -104,7 +104,6 @@ module.exports = function (app) {
                 });
 
                 httpResp.on('end', function () {
-                    console.log('status code', httpResp.statusCode);
                     try {
                         let data = JSON.parse(dataString),
                             issue = {
@@ -167,7 +166,6 @@ module.exports = function (app) {
                 });
 
                 httpResp.on('end', function () {
-                    console.log('status code', httpResp.statusCode);
                     if(httpResp.statusCode = 302){
                         let file = {
                           uri: httpResp.headers.location
