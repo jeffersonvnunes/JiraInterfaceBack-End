@@ -193,5 +193,67 @@ module.exports = function (app) {
         }
     };
 
+    controller.putIssue = function(req, resp){
+        function processRequest(key, issue) {
+            const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
+
+            let reqBody = {
+                fields: {}
+            };
+
+            if(!issue.priority){
+                resp.status(400).send("Priority attribute not informed.");
+            }
+
+            reqBody.fields.priority = {
+                id: issue.priority.id
+            };
+
+            let options = {
+                host: 'servimex.atlassian.net',
+                path: `/rest/api/2/issue/${key}`,
+                method: 'PUT',
+                headers: {
+                    'Authorization':'Basic '+ app.get('tokenJira'),
+                    'Content-Type': 'application/json'
+                },
+                agent: agent
+            };
+
+            let dataString = '';
+
+            let httpReq = http.request(options, function (httpResp) {
+                httpResp.setEncoding('utf8');
+                httpResp.on('data', function (chunk) {
+                    if (chunk !== null && chunk !== '') {
+                        dataString += chunk;
+                    }
+                });
+
+                httpResp.on('end', function () {
+                    resp.status(httpResp.statusCode).send(dataString);
+                });
+            });
+
+            httpReq.on("error", function (e) {
+                console.log("Got error request: " + e.message);
+                resp.status(500).send(e.message);
+            });
+
+            httpReq.write(JSON.stringify(reqBody));
+
+            httpReq.end();
+        }
+
+        try{
+            const issue = req.body;
+
+            processRequest(req.params.key, issue);
+        }catch (e) {
+            console.log("Got error: " + e.message);
+            resp.status(500).send(e.message);
+        }
+    };
+
     return controller;
 };

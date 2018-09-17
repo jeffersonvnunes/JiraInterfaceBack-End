@@ -7,7 +7,8 @@ module.exports = function (app) {
         .get(controller.getListIssues);
 
     app.route('/issues/:key')
-        .get(controller.getIssue);
+        .get(controller.getIssue)
+        .put(controller.putIssue);
 
     app.route('/issues/:key/attachment')
         .post(controller.getFile);
