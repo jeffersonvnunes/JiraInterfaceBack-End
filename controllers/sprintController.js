@@ -42,16 +42,23 @@ module.exports = function (app) {
                 httpResp.on('end', function () {
 
                     try {
-                        let data = JSON.parse(dataString);
+                        if(httpResp.statusCode >= 200 && httpResp.statusCode <= 299){
+                            let data = JSON.parse(dataString);
 
-                        items = items.concat(util.parseIssues(data));
+                            items = items.concat(util.parseIssues(data));
 
-                        totalItems += data.maxResults;
+                            totalItems += data.maxResults;
 
-                        if(totalItems < data.total){
-                            processRequest(jql, totalItems);
+                            if(totalItems < data.total){
+                                processRequest(jql, totalItems);
+                            }else{
+                                resp.json(items);
+                            }
                         }else{
-                            resp.json(items);
+                            let msg = {
+                                error: 'Não foi possível realizar a consulta'
+                            };
+                            resp.status(httpResp.statusCode).json(msg);
                         }
                     } catch (erro) {
                         console.log("Got error end: " + erro.message);

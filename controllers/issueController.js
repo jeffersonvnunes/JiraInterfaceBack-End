@@ -19,7 +19,7 @@ module.exports = function (app) {
 
             let options = {
                 host: 'servimex.atlassian.net',
-                path: `/rest/api/2/search?jql=${encodeURI(jql)}project=SERV%20AND%20issuetype%20not%20in%20(Epic%2C%20Sub-task)%20AND%20Sprint%20is%20EMPTY%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
+                path: `/rest/api/2/search?jql=${encodeURI(jql)}project=SERV%20AND%20issuetype%20not%20in%20(Epic%2C%20Sub-task)%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -41,18 +41,24 @@ module.exports = function (app) {
                 httpResp.on('end', function () {
                     try {
 
-                        let data = JSON.parse(dataString);
+                        if(httpResp.statusCode >= 200 && httpResp.statusCode <= 299){
+                            let data = JSON.parse(dataString);
 
-                        items = items.concat(util.parseIssues(data));
+                            items = items.concat(util.parseIssues(data));
 
-                        totalItems += data.maxResults;
+                            totalItems += data.maxResults;
 
-                        if(totalItems < data.total){
-                            processRequest(jql, totalItems);
+                            if(false && totalItems < data.total){
+                                processRequest(jql, totalItems);
+                            }else{
+                                resp.json(items);
+                            }
                         }else{
-                            resp.json(items);
+                            let msg = {
+                                error: 'Não foi possível realizar a consulta'
+                            };
+                            resp.status(httpResp.statusCode).json(msg);
                         }
-
                     } catch (erro) {
                         console.log("Got error end: " + erro.message);
                         resp.status(500).send(erro.message);
