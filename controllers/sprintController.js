@@ -1,18 +1,16 @@
 module.exports = function (app) {
     let Controller = require('./baseController'),
+        https = require('https'),
+        util = require('../lib/appUtils')(),
+        HttpsProxyAgent = require('https-proxy-agent'),
         controller = new Controller();
 
 
     controller.getListIssues = function(req, resp){
-        const https = require('https'),
-              util = require('../lib/appUtils')(),
-              HttpsProxyAgent = require('https-proxy-agent');
+        let totalItems = 0,
+            items = [];
 
-        let totalItems = 0;
-
-        let items = [];
-
-        function processRequest(jql, startAt = 0) {
+        function processRequest(id, jql, startAt = 0) {
 
             jql = jql !== undefined && jql !== '' ? jql + ' and '  : '';
 
@@ -20,7 +18,7 @@ module.exports = function (app) {
 
             let options = {
                 host: 'servimex.atlassian.net',
-                path: `/rest/agile/1.0/sprint/8/issue?jql=${encodeURI(jql)}issuetype%20not%20in%20(Epic%2C%20Sub-task)%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
+                path: `/rest/agile/1.0/sprint/${id}/issue?jql=${encodeURI(jql)}issuetype%20not%20in%20(Epic%2C%20Sub-task)%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -50,7 +48,7 @@ module.exports = function (app) {
                             totalItems += data.maxResults;
 
                             if(totalItems < data.total){
-                                processRequest(jql, totalItems);
+                                processRequest(id, jql, totalItems);
                             }else{
                                 resp.json(items);
                             }
@@ -76,7 +74,73 @@ module.exports = function (app) {
         }
 
         try{
-            processRequest(req.query.jql);
+            processRequest(req.params.id, req.query.jql);
+        }catch (e) {
+            console.log("Got error: " + e.message);
+            resp.status(500).send(e.message);
+        }
+    };
+
+    controller.getListSprints = function(req, resp){
+        function processRequest(boardId) {
+            const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
+
+            let options = {
+                host: 'servimex.atlassian.net',
+                path: `/rest/agile/1.0/board/${boardId}/sprint`,
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization':'Basic '+ app.get('tokenJira')
+                },
+                agent: agent
+            };
+
+            let dataString = '';
+
+            let httpReq = https.request(options, function (httpResp) {
+                httpResp.setEncoding('utf8');
+                httpResp.on('data', function (chunk) {
+                    if (chunk !== null && chunk !== '') {
+                        dataString += chunk;
+                    }
+                });
+
+                httpResp.on('end', function () {
+                    try {
+                        let data = JSON.parse(dataString),
+                            sprints = [],
+                            sprint = null;
+
+                        if(data.errorMessages){
+                            resp.status(httpResp.statusCode).send(data);
+                        }else{
+                            for(let i = 0; i < data.values.length; i++){
+                                sprint = data.values[i];
+                                sprints.push({
+                                   id: sprint.id,
+                                   state: sprint.state,
+                                   name: sprint.name,
+                                });
+                            }
+                            resp.json(sprints);
+                        }
+                    } catch (erro) {
+                        console.log("Got error end: " + erro.message);
+                        resp.status(500).send(erro.message);
+                    }
+                });
+            });
+
+            httpReq.on("error", function (e) {
+                console.log("Got error request: " + e.message);
+                resp.status(500).send(e.message);
+            });
+            httpReq.end();
+        }
+
+        try{
+            processRequest(req.params.boardId);
         }catch (e) {
             console.log("Got error: " + e.message);
             resp.status(500).send(e.message);
