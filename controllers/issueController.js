@@ -12,8 +12,9 @@ module.exports = function (app) {
         let items = [];
 
         function processRequest(jql, startAt = 0) {
-
-            jql = jql !== undefined && jql !== '' ? jql + ' and '  : '';
+            if(startAt === 0){
+                jql = jql !== undefined && jql !== '' ? jql + ' and '  : '';
+            }
 
             const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
 
@@ -48,12 +49,13 @@ module.exports = function (app) {
 
                             totalItems += data.maxResults;
 
-                            if(false && totalItems < data.total){
+                            if(totalItems < data.total){
                                 processRequest(jql, totalItems);
                             }else{
                                 resp.json(items);
                             }
                         }else{
+                            console.log('Error: ', dataString);
                             let msg = {
                                 error: 'Não foi possível realizar a consulta'
                             };
@@ -71,7 +73,6 @@ module.exports = function (app) {
                 resp.status(500).send(e.message);
             });
 
-            //req.write(JSON.stringify(reqBody));
             httpReq.end();
         }
 
