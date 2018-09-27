@@ -13,7 +13,7 @@ module.exports = function (app) {
 
             let options = {
                 host: 'servimex.atlassian.net',
-                path: '/rest/api/2/project/'+projectId+'/components',
+                path: '/rest/api/3/project/'+projectId+'/components',
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -63,8 +63,8 @@ module.exports = function (app) {
         try{
             processRequest(req.params.projectId);
         } catch (erro) {
-            console.log("Got error: " + e.message);
-            res.status(500).send(e.message);
+            console.log("Got error: " + erro.message);
+            res.status(500).send(erro.message);
         }
     };
 

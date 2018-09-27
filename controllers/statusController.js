@@ -3,9 +3,9 @@ module.exports = function (app) {
     const Controller = require('./baseController');
     let controller = new Controller();
 
-    controller.getListPriority = function(req, res){
+    controller.getListStatus = function(req, res){
         const http = require('https'),
-            HttpsProxyAgent = require('https-proxy-agent');
+              HttpsProxyAgent = require('https-proxy-agent');
 
         function processRequest() {
 
@@ -13,7 +13,7 @@ module.exports = function (app) {
 
             let options = {
                 host: 'servimex.atlassian.net',
-                path: '/rest/api/3/priority',
+                path: '/rest/api/3/status',
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -34,17 +34,18 @@ module.exports = function (app) {
 
                 resp.on('end', function () {
                     try {
-                        let priorities = [],
+                        let statusList = [],
                             data = JSON.parse(dataString);
 
                         for( let i = 0; i < data.length; i++){
-                            priorities.push({
+                            statusList.push({
                                 id: data[i].id,
                                 name: data[i].name,
+                                colorName: data[i].statusCategory ? data[i].statusCategory.colorName : 'white',
                             });
                         }
 
-                        res.json(priorities);
+                        res.json(statusList);
                     } catch (erro) {
                         console.log("Got error end: " + erro.message);
                         res.status(500).send(erro.message);
@@ -62,10 +63,9 @@ module.exports = function (app) {
         try{
             processRequest();
         } catch (erro) {
-            console.log("Got error: " + erro.message);
+            console.log("Got error: " +erro.message);
             res.status(500).send(erro.message);
         }
     };
-
     return controller;
 };

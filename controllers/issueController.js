@@ -20,7 +20,7 @@ module.exports = function (app) {
 
             let options = {
                 host: 'servimex.atlassian.net',
-                path: `/rest/api/2/search?jql=${encodeURI(jql)}project=SERV%20AND%20issuetype%20not%20in%20(Epic%2C%20Sub-task)%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
+                path: `/rest/api/3/search?jql=${encodeURI(jql)}project=SERV%20AND%20issuetype%20not%20in%20(Epic%2C%20Sub-task)%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ module.exports = function (app) {
 
             let options = {
                 host: 'servimex.atlassian.net',
-                path: `/rest/api/2/issue/${key}?expand=renderedFields`,
+                path: `/rest/api/3/issue/${key}?expand=renderedFields`,
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -218,7 +218,7 @@ module.exports = function (app) {
 
             let options = {
                 host: 'servimex.atlassian.net',
-                path: `/rest/api/2/issue/${key}`,
+                path: `/rest/api/3/issue/${key}`,
                 method: 'PUT',
                 headers: {
                     'Authorization':'Basic '+ app.get('tokenJira'),
