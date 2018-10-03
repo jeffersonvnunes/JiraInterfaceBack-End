@@ -19,7 +19,7 @@ module.exports = function (app) {
             const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
 
             let options = {
-                host: 'servimex.atlassian.net',
+                host: app.get('baseURLJira'),
                 path: `/rest/api/3/search?jql=${encodeURI(jql)}project=SERV%20AND%20issuetype%20not%20in%20(Epic%2C%20Sub-task)%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
                 method: 'GET',
                 headers: {
@@ -90,7 +90,7 @@ module.exports = function (app) {
             const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
 
             let options = {
-                host: 'servimex.atlassian.net',
+                host: app.get('baseURLJira'),
                 path: `/rest/api/3/issue/${key}?expand=renderedFields`,
                 method: 'GET',
                 headers: {
@@ -152,7 +152,7 @@ module.exports = function (app) {
             const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
 
             let options = {
-                host: 'servimex.atlassian.net',
+                host: app.get('baseURLJira'),
                 path: body.file,
                 method: 'GET',
                 headers: {
@@ -216,8 +216,10 @@ module.exports = function (app) {
                 id: issue.priority.id
             };
 
+            reqBody.fields.customfield_10010 = !issue.sprint ? issue.sprint.id : null;
+
             let options = {
-                host: 'servimex.atlassian.net',
+                host: app.get('baseURLJira'),
                 path: `/rest/api/3/issue/${key}`,
                 method: 'PUT',
                 headers: {

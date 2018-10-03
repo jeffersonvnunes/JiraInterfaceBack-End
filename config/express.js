@@ -7,27 +7,25 @@ module.exports = function() {
     let app = express();
 
     app.use(function (req, res, next) {
-
         res.setHeader('Access-Control-Allow-Origin', '*');
-
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-
         res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
         res.setHeader('Access-Control-Allow-Credentials', true);
-
         next();
     });
 
     app.set('tokenJira', JIRA_KEY);
+    app.set('baseURLJira', 'URL');
 
     app.set('port', 3000);
 
     app.set('useProxy', false);
     app.set('proxy', 'host');
 
-    app.use(express.static('./public'));
+    app.set('authPort', 8081);
+    app.set('authServer', 'localhost');
 
+    app.use(express.static('./public'));
 
     app.use(bodyParser.urlencoded({extended: true}));
     app.use(bodyParser.json());

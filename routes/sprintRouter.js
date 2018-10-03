@@ -7,7 +7,8 @@ module.exports = function (app) {
         .get(controller.getListSprints);
 
     app.route('/sprint/:id/issue')
-        .get(controller.getListIssues);
+        .get(controller.getListIssues)
+        .post(controller.addIssue);
 
     //baseRoute.config('issues', controller);
 };

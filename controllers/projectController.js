@@ -12,7 +12,7 @@ module.exports = function (app) {
             const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
 
             let options = {
-                host: 'servimex.atlassian.net',
+                host: app.get('baseURLJira'),
                 path: '/rest/api/3/project/'+projectId+'/components',
                 method: 'GET',
                 headers: {

@@ -17,7 +17,7 @@ module.exports = function (app) {
             const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
 
             let options = {
-                host: 'servimex.atlassian.net',
+                host: app.get('baseURLJira'),
                 path: `/rest/agile/1.0/sprint/${id}/issue?jql=${encodeURI(jql)}issuetype%20not%20in%20(Epic%2C%20Sub-task)%20ORDER%20BY%20key%20ASC&startAt=${startAt}`,
                 method: 'GET',
                 headers: {
@@ -86,7 +86,7 @@ module.exports = function (app) {
             const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
 
             let options = {
-                host: 'servimex.atlassian.net',
+                host: app.get('baseURLJira'),
                 path: `/rest/agile/1.0/board/${boardId}/sprint`,
                 method: 'GET',
                 headers: {
@@ -141,6 +141,58 @@ module.exports = function (app) {
 
         try{
             processRequest(req.params.boardId);
+        }catch (e) {
+            console.log("Got error: " + e.message);
+            resp.status(500).send(e.message);
+        }
+    };
+
+    controller.addIssue = function(req, resp){
+        function processRequest(id, body) {
+            const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
+
+            if(!body.issues && body.issues.length === 0){
+                resp.status(400).send("issues attribute not informed or is empty.");
+            }
+
+            let options = {
+                host: app.get('baseURLJira'),
+                path: `/rest/agile/1.0/sprint/${id}/issue`,
+                method: 'POST',
+                headers: {
+                    'Authorization':'Basic '+ app.get('tokenJira'),
+                    'Content-Type': 'application/json'
+                },
+                agent: agent
+            };
+
+            let dataString = '';
+
+            let httpReq = http.request(options, function (httpResp) {
+                httpResp.setEncoding('utf8');
+                httpResp.on('data', function (chunk) {
+                    if (chunk !== null && chunk !== '') {
+                        dataString += chunk;
+                    }
+                });
+
+                httpResp.on('end', function () {
+                    resp.status(httpResp.statusCode).send(dataString);
+                });
+            });
+
+            httpReq.on("error", function (e) {
+                console.log("Got error request: " + e.message);
+                resp.status(500).send(e.message);
+            });
+
+            httpReq.write(JSON.stringify(body));
+
+            httpReq.end();
+        }
+
+        try{
+            processRequest(req.params.id, req.body);
         }catch (e) {
             console.log("Got error: " + e.message);
             resp.status(500).send(e.message);
