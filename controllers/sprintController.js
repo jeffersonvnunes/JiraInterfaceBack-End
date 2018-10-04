@@ -121,6 +121,7 @@ module.exports = function (app) {
                                    id: sprint.id,
                                    state: sprint.state,
                                    name: sprint.name,
+                                   canEdit: sprint.state.toUpperCase() === 'FUTURE',
                                 });
                             }
                             resp.json(sprints);

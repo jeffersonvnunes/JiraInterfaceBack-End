@@ -216,7 +216,7 @@ module.exports = function (app) {
                 id: issue.priority.id
             };
 
-            reqBody.fields.customfield_10010 = !issue.sprint ? issue.sprint.id : null;
+            reqBody.fields.customfield_10010 = issue.sprint ? issue.sprint.id : null;
 
             let options = {
                 host: app.get('baseURLJira'),
