@@ -147,6 +147,86 @@ module.exports = function (app) {
         }
     };
 
+    controller.getIssueEditMeta = function(req, resp){
+        function processRequest(key) {
+            const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
+
+            let options = {
+                host: app.get('baseURLJira'),
+                path: `/rest/api/3/issue/${key}/editmeta`,
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization':'Basic '+ app.get('tokenJira')
+                },
+                agent: agent
+            };
+
+            let dataString = '';
+
+            let httpReq = http.request(options, function (httpResp) {
+                httpResp.setEncoding('utf8');
+                httpResp.on('data', function (chunk) {
+                    if (chunk !== null && chunk !== '') {
+                        dataString += chunk;
+                    }
+                });
+
+                httpResp.on('end', function () {
+                    try {
+                        let data = JSON.parse(dataString),
+                            issueMeta = {},
+                            allowedValues,
+                            meta;
+
+                        if(data.errorMessages){
+                            resp.status(httpResp.statusCode).send(data);
+                        }else{
+                            for (let prop in data.fields) {
+                                if( data.fields.hasOwnProperty(prop) && data.fields[prop].allowedValues ) {
+                                    allowedValues = data.fields[prop].allowedValues;
+
+                                    issueMeta[prop] = {
+                                        allowedValues : []
+                                    };
+
+                                    for(let i = 0; i < allowedValues.length; i++){
+                                        meta = allowedValues[i];
+
+                                        issueMeta[prop].allowedValues.push({
+                                            id: meta.id,
+                                            name: meta.name,
+                                            value: meta.value
+                                        });
+                                    }
+                                }
+                            }
+
+                            resp.json(issueMeta);
+                        }
+                    } catch (erro) {
+                        console.log("Got error end: " + erro.message);
+                        resp.status(500).send(erro.message);
+                    }
+                });
+            });
+
+            httpReq.on("error", function (e) {
+                console.log("Got error request: " + e.message);
+                resp.status(500).send(e.message);
+            });
+
+            httpReq.end();
+        }
+
+        try{
+            processRequest(req.params.key);
+        }catch (e) {
+            console.log("Got error: " + e.message);
+            resp.status(500).send(e.message);
+        }
+    };
+
     controller.getFile = function(req, resp){
         function processRequest(body) {
             const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
@@ -208,15 +288,37 @@ module.exports = function (app) {
                 fields: {}
             };
 
-            if(!issue.priority){
-                resp.status(400).send("Priority attribute not informed.");
+            if(issue.priority){
+                reqBody.fields.priority = {
+                    id: issue.priority.id
+                };
             }
 
-            reqBody.fields.priority = {
-                id: issue.priority.id
-            };
+            if(issue.sprint){
+                reqBody.fields.customfield_10010 = issue.sprint.id ? issue.sprint.id : null;
+            }
 
-            reqBody.fields.customfield_10010 = issue.sprint ? issue.sprint.id : null;
+            if(issue.requireHomologation){
+                reqBody.fields.customfield_10037 = issue.requireHomologation.id ? { id: issue.requireHomologation.id } : null;
+            }
+
+            if(issue.productOwner){
+                reqBody.fields.customfield_10036 = issue.productOwner.id ? { id: issue.productOwner.id } : null;
+            }
+
+            if(issue.departments){
+                //reqBody.fields.customfield_10040 =
+            }
+
+            if(issue.lastUserUpdate){
+                reqBody.fields.customfield_10044 = {
+                    value: `${issue.lastUserUpdate} em ${(new Date()).toLocaleString()}`
+                };
+            }
+
+            if(issue.sac){
+                reqBody.fields.customfield_10029 = issue.sac;
+            }
 
             let options = {
                 host: app.get('baseURLJira'),
@@ -240,7 +342,15 @@ module.exports = function (app) {
                 });
 
                 httpResp.on('end', function () {
-                    resp.status(httpResp.statusCode).send(dataString);
+                    try{
+                        if(httpResp.statusCode < 200 || httpResp.statusCode >= 300 ){
+                            console.log("Error", dataString);
+                        }
+                        resp.status(httpResp.statusCode).send(dataString);
+                    }catch(e) {
+                        console.log("Got error: " + e.message);
+                        resp.status(500).send(e.message);
+                    }
                 });
             });
 

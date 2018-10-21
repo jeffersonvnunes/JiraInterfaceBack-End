@@ -13,5 +13,8 @@ module.exports = function (app) {
     app.route('/issues/:key/attachment')
         .post(controller.getFile);
 
+    app.route('/issues/:key/editmeta')
+        .get(controller.getIssueEditMeta);
+
     //baseRoute.config('issues', controller);
 };
