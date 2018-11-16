@@ -307,7 +307,13 @@ module.exports = function (app) {
             }
 
             if(issue.departments){
-                //reqBody.fields.customfield_10040 =
+                reqBody.fields.customfield_10040 = [];
+
+                for(let i = 0; i < issue.departments.length; i++){
+                    reqBody.fields.customfield_10040.push({
+                        id: issue.departments[i].id
+                    });
+                }
             }
 
             if(issue.lastUserUpdate){
