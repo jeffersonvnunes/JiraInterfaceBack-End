@@ -4,7 +4,8 @@ module.exports = function (app) {
         http = require('https'),
         util = require('../lib/appUtils')(),
         HttpsProxyAgent = require('https-proxy-agent'),
-        controller = new Controller();
+        controller = new Controller(),
+        fs = require('fs');
 
     controller.getListIssues = function(req, resp){
         let totalItems = 0;
@@ -77,7 +78,15 @@ module.exports = function (app) {
         }
 
         try{
-            processRequest(req.query.jql);
+            if(false){
+                fs.readFile('issues.json', function(err, data) {
+                    resp.writeHead(200, {'Content-Type': 'application/json'});
+                    resp.write(data);
+                    resp.end();
+                });
+            }else{
+                processRequest(req.query.jql);
+            }
         }catch (e) {
             console.log("Got error: " + e.message);
             resp.status(500).send(e.message);

@@ -1,14 +1,15 @@
 module.exports = function (app) {
 
     let controller = app.controllers.sprintController,
-        baseRoute = app.routes.baseRoute;
+        baseRoute = app.routes.baseRoute,
+        sessionManager = require('../services/sessionManagerService');
 
     app.route('/board/:boardId/sprint')
-        .get(controller.getListSprints);
+        .get(sessionManager.isAuthenticated, controller.getListSprints);
 
     app.route('/sprint/:id/issue')
-        .get(controller.getListIssues)
-        .post(controller.addIssue);
+        .get(sessionManager.isAuthenticated, controller.getListIssues)
+        .post(sessionManager.isAuthenticated, controller.addIssue);
 
     //baseRoute.config('issues', controller);
 };
