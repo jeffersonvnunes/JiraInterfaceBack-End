@@ -4,27 +4,33 @@ const express = require('express'),
       path = require('path');
 
 module.exports = function() {
-    let app = express();
+    let app = express(),
+        fs = require('fs'),
+        config = null;
 
     app.use(function (req, res, next) {
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
         res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, token');
         res.setHeader('Access-Control-Allow-Credentials', true);
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         next();
     });
 
-    app.set('tokenJira', JIRA_KEY);
-    app.set('baseURLJira', 'URL');
+    fs.readFile('./config/server_config.json','', function(err, data) {
+        config = JSON.parse(data);
+
+        app.set('tokenJira', config ? config.tokenJira : '');
+        app.set('baseURLJira', config ? config.baseURLJira : '');
+
+        app.set('useProxy', config ? config.useProxy : '');
+        app.set('proxyHost', config ? config.proxyHost : '');
+
+        app.set('authPort', config ? config.authPort : '');
+        app.set('authServer', config ? config.authServer : '');
+    });
 
     app.set('port', 3000);
-
-    app.set('useProxy', false);
-    app.set('proxy', 'host');
-
-    app.set('authPort', 8081);
-    app.set('authServer', 'localhost');
-
     app.use(express.static('./public'));
 
     app.use(bodyParser.urlencoded({extended: true}));

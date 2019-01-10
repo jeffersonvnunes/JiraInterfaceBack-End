@@ -9,7 +9,7 @@ module.exports = function (app) {
 
         function processRequest() {
 
-            const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
+            const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxyHost')) : undefined;
 
             let options = {
                 host: app.get('baseURLJira'),

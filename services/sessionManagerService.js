@@ -8,8 +8,8 @@ module.exports = (function (){
             token: data.Token,
             userLogin: data.Usuario,
             userName: data.Nome_Usuario,
-            loginDate: data.Dh_conexao.replace('Z',''),
-            expiryDate: data.Dh_expira.replace('Z',''),
+            loginDate: new Date(data.Dh_conexao.replace('Z','')),
+            expiryDate: new Date(data.Dh_expira.replace('Z','')),
         };
         sessionManager.sessions.push(session);
 
@@ -24,11 +24,26 @@ module.exports = (function (){
         });
 
         if (req.headers.token && session.length > 0){
+            session[0].expiryDate = new Date(new Date().getTime() + 60*60000).toISOString();
             return next();
         }else{
             resp.status(401).send('Não autorizado');
         }
+    };
+
+    function clearExpiredSessions (){
+        let now = new Date().getTime();
+            sessions = sessionManager.sessions.filter(function(session){
+            let exp = new Date(session.expiryDate);
+            if( exp.getTime() >= now){
+                return session;
+            }
+        });
+
+        sessionManager.sessions = sessions;
     }
+
+    setInterval(clearExpiredSessions, 5*60000);
 
     return sessionManager;
 })();

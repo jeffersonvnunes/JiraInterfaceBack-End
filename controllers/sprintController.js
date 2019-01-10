@@ -14,7 +14,7 @@ module.exports = function (app) {
 
             jql = jql !== undefined && jql !== '' ? jql + ' and '  : '';
 
-            const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxy')) : undefined;
+            const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxyHost')) : undefined;
 
             let options = {
                 host: app.get('baseURLJira'),

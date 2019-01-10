@@ -1,0 +1,9 @@
+{
+  "tokenJira": "token",
+  "baseURLJira": "URL",
+  "port": 3000,
+  "useProxy": false,
+  "proxy": "host",
+  "authPort": 8080,
+  "authServer": "127.0.0.0"
+}
