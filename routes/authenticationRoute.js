@@ -6,5 +6,8 @@ module.exports = function (app) {
     app.route('/login')
         .post(controller.login);
 
+    app.route('/logout')
+        .post(controller.logout);
+
     //baseRoute.config('issues', controller);
 };

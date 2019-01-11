@@ -65,5 +65,16 @@ module.exports = function (app) {
         httpReq.end();
     };
 
+    controller.logout = function(req, resp) {
+        try {
+            let data = req.body;
+
+            sessionManager.removeSession(data);
+        } catch (erro) {
+            console.log("Got error end: " + erro.message);
+            resp.status(500).send(erro.message);
+        }
+    };
+
     return controller;
 };

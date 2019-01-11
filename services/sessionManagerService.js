@@ -31,6 +31,14 @@ module.exports = (function (){
         }
     };
 
+    sessionManager.removeSession = function (data) {
+        sessionManager.sessions = sessionManager.sessions.filter(function(session){
+            if(session.token !== data.token){
+                return session;
+            }
+        });
+    };
+
     function clearExpiredSessions (){
         let now = new Date().getTime();
             sessions = sessionManager.sessions.filter(function(session){
