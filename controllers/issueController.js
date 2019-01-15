@@ -1,11 +1,12 @@
 module.exports = function (app) {
 
-    let Controller = require('./baseController'),
+    const Controller = require('./baseController'),
         http = require('https'),
         util = require('../lib/appUtils')(),
         HttpsProxyAgent = require('https-proxy-agent'),
-        controller = new Controller(),
         fs = require('fs');
+
+    let controller = new Controller();
 
     controller.getListIssues = function(req, resp){
         let totalItems = 0;
