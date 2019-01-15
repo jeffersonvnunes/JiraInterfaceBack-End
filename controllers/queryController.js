@@ -15,7 +15,7 @@ module.exports = function (app) {
             fields: []
         };
 
-        function processRequest(jql, total ,startAt = 0) {
+        function processRequest(jql, params ,startAt = 0) {
 
             const agent = app.get('useProxy') ? new HttpsProxyAgent(app.get('proxyHost')) : undefined;
 
@@ -40,6 +40,68 @@ module.exports = function (app) {
                     }
                 });
 
+                function departmentTotals(dataResp){
+                    let issue,
+                        items = [],
+                        departments = {};
+
+                    for(let i = 0; i < dataResp.query.length; i++){
+                        issue = dataResp.query[i];
+                        issue.departments.forEach(department => {
+                            if(department.id !== "10070"){
+                                if(!departments[department.id]){
+                                    departments[department.id] = {
+                                        id: department.id,
+                                        name: department.value,
+                                        bugs: 0,
+                                        stories: 0,
+                                        totalIssues: 0,
+                                    };
+                                }
+
+                                if(issue.issuetype.toLowerCase() === 'bug'){
+                                    departments[department.id].bugs++;
+                                }else{
+                                    departments[department.id].stories++;
+                                }
+
+                                departments[department.id].totalIssues++;
+                            }
+                        });
+                    }
+
+                    for (let item in departments){
+                        items.push(departments[item]);
+                    }
+
+                    dataResp.query = items;
+                }
+
+                function typeTotals(dataResp){
+                    let issue,
+                        items = [],
+                        types = {};
+
+                    for(let i = 0; i < dataResp.query.length; i++){
+                        issue = dataResp.query[i];
+
+                            if(!types[issue.issuetype]){
+                                types[issue.issuetype] = {
+                                    name: issue.issuetype,
+                                    total: 0,
+                                };
+                            }
+
+                            types[issue.issuetype].total++;
+                    }
+
+                    for (let item in types){
+                        items.push(types[item]);
+                    }
+
+                    dataResp.query = items;
+                }
+
                 httpResp.on('end', function () {
                     try {
 
@@ -51,43 +113,13 @@ module.exports = function (app) {
                             totalItems += data.maxResults;
 
                             if(totalItems < data.total){
-                                processRequest(jql, total, totalItems);
+                                processRequest(jql, params, totalItems);
                             }else{
 
-                                if(total){
-                                    let issue,
-                                        items = [],
-                                        departmentsPoints = {};
-
-                                    for(let i = 0; i < dataResp.query.length; i++){
-                                        issue = dataResp.query[i];
-
-                                        issue.departments.forEach(department => {
-                                            if(!departmentsPoints[department.id]){
-                                                departmentsPoints[department.id] = {
-                                                    id: department.id,
-                                                    name: department.value,
-                                                    bugs: 0,
-                                                    stories: 0,
-                                                    totalIssues: 0,
-                                                };
-                                            }
-
-                                            if(issue.issuetype.toLowerCase() === 'bug'){
-                                                departmentsPoints[department.id].bugs++;
-                                            }else{
-                                                departmentsPoints[department.id].stories++;
-                                            }
-
-                                            departmentsPoints[department.id].totalIssues++;
-                                        });
-                                    }
-
-                                    for (let id in departmentsPoints){
-                                        items.push(departmentsPoints[id]);
-                                    }
-
-                                    dataResp.query = items;
+                                if(params.department){
+                                    departmentTotals(dataResp);
+                                }else if(params.type){
+                                    typeTotals(dataResp);
                                 }
 
                                 let item = dataResp.query[0];
@@ -122,13 +154,12 @@ module.exports = function (app) {
         }
 
         try{
-            processRequest(req.body.jql, req.query.total);
+            processRequest(req.body.jql, req.query);
 
         }catch (e) {
             console.log("Got error: " + e.message);
             resp.status(500).send(e.message);
         }
-
     };
 
     return controller;
