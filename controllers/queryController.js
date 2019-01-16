@@ -55,6 +55,7 @@ module.exports = function (app) {
                                         name: department.value,
                                         bugs: 0,
                                         stories: 0,
+                                        storiesPoints: 0,
                                         totalIssues: 0,
                                     };
                                 }
@@ -65,6 +66,7 @@ module.exports = function (app) {
                                     departments[department.id].stories++;
                                 }
 
+                                departments[department.id].storiesPoints += issue.storyPoints;
                                 departments[department.id].totalIssues++;
                             }
                         });
@@ -85,14 +87,16 @@ module.exports = function (app) {
                     for(let i = 0; i < dataResp.query.length; i++){
                         issue = dataResp.query[i];
 
-                            if(!types[issue.issuetype]){
-                                types[issue.issuetype] = {
-                                    name: issue.issuetype,
-                                    total: 0,
-                                };
-                            }
+                        if(!types[issue.issuetype]){
+                            types[issue.issuetype] = {
+                                name: issue.issuetype,
+                                total: 0,
+                                typePoints: 0,
+                            };
+                        }
 
-                            types[issue.issuetype].total++;
+                        types[issue.issuetype].total++;
+                        types[issue.issuetype].typePoints += issue.storyPoints;
                     }
 
                     for (let item in types){
