@@ -57,6 +57,7 @@ module.exports = function (app) {
                                         stories: 0,
                                         storiesPoints: 0,
                                         totalIssues: 0,
+                                        storiesPointsAverage: 0,
                                     };
                                 }
 
@@ -68,6 +69,7 @@ module.exports = function (app) {
 
                                 departments[department.id].storiesPoints += issue.storyPoints;
                                 departments[department.id].totalIssues++;
+                                departments[department.id].storiesPointsAverage +=  Math.round(issue.storyPoints/issue.departments.length);
                             }
                         });
                     }
