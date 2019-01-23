@@ -1,7 +1,8 @@
 const express = require('express'),
       load = require('express-load'),
       bodyParser = require('body-parser'),
-      path = require('path');
+      path = require('path'),
+      http = require('http');
 
 module.exports = function() {
     let app = express(),
@@ -20,6 +21,8 @@ module.exports = function() {
     fs.readFile('./config/server_config.json','', function(err, data) {
         config = JSON.parse(data);
 
+        app.set('port', config ? config.port : 3000);
+
         app.set('tokenJira', config ? config.tokenJira : '');
         app.set('baseURLJira', config ? config.baseURLJira : '');
 
@@ -28,9 +31,17 @@ module.exports = function() {
 
         app.set('authPort', config ? config.authPort : '');
         app.set('authServer', config ? config.authServer : '');
+
+        app.set('MONGO_DATABASE', config ? config.mongoDB.database : '');
+        app.set('MONGO_HOST', config ? config.mongoDB.host : '');
+
+        require('./database.js')('mongodb://'+app.get('MONGO_HOST')+'/'+app.get('MONGO_DATABASE'));
+
+        http.createServer(app).listen(app.get('port'), function(){
+            console.log('Express Server escutando na porta ' + app.get('port'));
+        });
     });
 
-    app.set('port', 3000);
     app.use(express.static('./public'));
 
     app.use(bodyParser.urlencoded({extended: true}));

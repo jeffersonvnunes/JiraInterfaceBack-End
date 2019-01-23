@@ -5,5 +5,9 @@
   "useProxy": false,
   "proxy": "host",
   "authPort": 8080,
-  "authServer": "127.0.0.0"
+  "authServer": "127.0.0.0",
+  "mongoDB": {
+    "host": "localhost",
+    "database": "jirainterface"
+  }
 }
