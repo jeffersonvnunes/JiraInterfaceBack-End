@@ -17,5 +17,8 @@ module.exports = function (app) {
     app.route('/issues/:key/editmeta')
         .get(sessionManager.isAuthenticated, controller.getIssueEditMeta);
 
+    app.route('/setestimatedtime')
+        .put(controller.setEstimatedTime)
+
     //baseRoute.config('issues', controller);
 };

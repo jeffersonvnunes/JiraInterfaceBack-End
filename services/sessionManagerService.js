@@ -41,14 +41,13 @@ module.exports = (function (){
 
     function clearExpiredSessions (){
         let now = new Date().getTime();
-            sessions = sessionManager.sessions.filter(function(session){
+
+        sessionManager.sessions = sessionManager.sessions.filter(function (session) {
             let exp = new Date(session.expiryDate);
-            if( exp.getTime() >= now){
+            if (exp.getTime() >= now) {
                 return session;
             }
         });
-
-        sessionManager.sessions = sessions;
     }
 
     setInterval(clearExpiredSessions, 5*60000);

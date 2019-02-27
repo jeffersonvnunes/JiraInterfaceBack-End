@@ -11,5 +11,8 @@ module.exports = function (app) {
         .get(sessionManager.isAuthenticated, controller.getListIssues)
         .post(sessionManager.isAuthenticated, controller.addIssue);
 
+    app.route('/sprint/:id/setestimatedtime')
+        .put(controller.setEstimatedTime)
+
     //baseRoute.config('issues', controller);
 };
