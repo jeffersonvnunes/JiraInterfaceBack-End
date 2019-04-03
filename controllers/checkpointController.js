@@ -4,13 +4,17 @@ module.exports = function (app) {
           http = require('https'),
           util = require('../lib/appUtils')(),
           HttpsProxyAgent = require('https-proxy-agent');
+          //appRoot = require('app-root-path'),
+          //winston = require(appRoot+'/config/winston');
 
     let controller = new Controller();
 
     controller.Model = app.models.checkpointModel;
 
     controller.newCheckpoint = function(req, resp){
-        let totalItems = 0;
+        let totalItems = 0,
+            closing = false,
+            action = 'TRACKING';
 
         let issues = [];
 
@@ -54,7 +58,7 @@ module.exports = function (app) {
                             }else{
                                 let checkpoint = {
                                     sprintID: sprintID,
-                                    checkpointType: 'OPENING',
+                                    checkpointType: action,
                                     issues: issues,
                                 };
 
@@ -88,7 +92,105 @@ module.exports = function (app) {
         }
 
         try{
-            processRequest(req.params.sprintID);
+            closing = req.query.closing;
+            controller.Model.find({sprintID: req.params.sprintID, $or: [{checkpointType: 'OPENING'},{checkpointType: 'CLOSING'}]}, 'checkpointType').exec()
+                .then(
+                    function(qry) {
+
+                        if(closing && closing.toUpperCase() === 'TRUE' && qry.length === 0){
+                            let msg = {
+                                error: 'Deve existir um checkpoint de abertura'
+                            };
+
+                            resp.status(400).json(msg);
+                            return;
+                        }else if(qry.length > 1){
+                            let msg = {
+                                error: 'Checkpoint de fechamento já criado'
+                            };
+
+                            resp.status(400).json(msg);
+                            return;
+                        }
+
+                        if(qry.length === 0){
+                            action = 'OPENING';
+                        } else if(closing && closing.toUpperCase() === 'TRUE'){
+                            action = 'CLOSING';
+                        }
+
+                        processRequest(req.params.sprintID);
+
+                    },
+                    function(error) {
+                        console.log(error);
+                        resp.status(500).json(error);
+                    }
+                );
+
+        }catch (e) {
+            console.log("Got error: " + e.message);
+            resp.status(500).send(e.message);
+        }
+    };
+
+    controller.getCheckpoints = function(req, resp){
+        try{
+            controller.Model.find({sprintID: req.params.sprintID}).sort({date: 1}).exec()
+                .then(
+                    function(qry) {
+                        resp.status(201).json(qry);
+                    },
+                    function(error) {
+                        console.log(error);
+                        resp.status(500).json(error);
+                    }
+                );
+
+        }catch (e) {
+            console.log("Got error: " + e.message);
+            resp.status(500).send(e.message);
+        }
+    };
+
+    controller.getCheckpointsTotals = function(req, resp){
+        try{
+            let dtStart = req.query.dtStart,
+                dtEnd = req.query.dtEnd;
+
+            controller.Model.find({date: {$gte:  new Date(dtStart),$lte: new Date(dtEnd)}, checkpointType: 'CLOSING'}).exec()
+                .then(
+                    function(qry) {
+
+                        let issuesTotals = {
+                            totalIssues: 0,
+                            totalPoints: 0,
+                            finishedIssues: 0,
+                            finishedPoins:0
+                        },
+                        issue = null;
+
+                        for(let i = 0 ; i < qry.length; i++){
+                            for(let x = 0; x < qry[i].issues.length; x++){
+                                issue = qry[i].issues[x];
+
+                                issuesTotals.totalIssues++;
+                                issuesTotals.totalPoints += issue.storyPoints;
+
+                                if(issue.status === 'Em Produção' || issue.status === 'Concluído por TI'){
+                                    issuesTotals.finishedIssues++;
+                                    issuesTotals.finishedPoins += issue.storyPoints;
+                                }
+                            }
+                        }
+
+                        resp.status(201).json(issuesTotals);
+                    },
+                    function(error) {
+                        console.log(error);
+                        resp.status(500).json(error);
+                    }
+                );
 
         }catch (e) {
             console.log("Got error: " + e.message);

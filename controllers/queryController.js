@@ -128,13 +128,6 @@ module.exports = function (app) {
                                     typeTotals(dataResp);
                                 }
 
-                                let item = dataResp.query[0];
-                                if(item){
-                                    for (let field in item){
-                                        dataResp.fields.push(field);
-                                    }
-                                }
-
                                 resp.json(dataResp);
                             }
                         }else{

@@ -25,6 +25,7 @@ module.exports = (function (){
 
         if (req.headers.token && session.length > 0){
             session[0].expiryDate = new Date(new Date().getTime() + 60*60000).toISOString();
+            req.userSession = session[0];
             return next();
         }else{
             resp.status(401).send('Não autorizado');
