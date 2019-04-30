@@ -327,9 +327,7 @@ module.exports = function (app) {
             }
 
             if(issue.lastUserUpdate){
-                reqBody.fields.customfield_10044 = {
-                    value: `${issue.lastUserUpdate} em ${(new Date()).toLocaleString()}`
-                };
+                reqBody.fields.customfield_10044 = `${issue.lastUserUpdate} em ${(new Date()).toLocaleString()}`;
             }
 
             if(issue.sac){
