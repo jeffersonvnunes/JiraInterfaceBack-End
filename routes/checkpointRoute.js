@@ -8,7 +8,7 @@ module.exports = function (app) {
 
     app.route('/checkpoints/:sprintID')
         .get(sessionManager.isAuthenticated, controller.getCheckpoints)
-        .post( controller.newCheckpoint);
+        .post(sessionManager.isAuthenticated, controller.newCheckpoint);
 
     app.route('/checkpointstotals')
         .get(sessionManager.isAuthenticated, controller.getCheckpointsTotals);

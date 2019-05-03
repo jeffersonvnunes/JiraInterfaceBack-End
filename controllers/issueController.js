@@ -326,6 +326,16 @@ module.exports = function (app) {
                 }
             }
 
+            if(issue.components){
+                reqBody.fields.components = [];
+
+                for(let i = 0; i < issue.components.length; i++){
+                    reqBody.fields.components.push({
+                        id: issue.components[i].id
+                    });
+                }
+            }
+
             if(issue.lastUserUpdate){
                 reqBody.fields.customfield_10044 = `${issue.lastUserUpdate} em ${(new Date()).toLocaleString()}`;
             }

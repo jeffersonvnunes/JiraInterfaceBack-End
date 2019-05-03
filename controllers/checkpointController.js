@@ -99,14 +99,14 @@ module.exports = function (app) {
 
                         if(closing && closing.toUpperCase() === 'TRUE' && qry.length === 0){
                             let msg = {
-                                error: 'Deve existir um checkpoint de abertura'
+                                error: 'Deve existir um checkpoint de abertura para poder realizar o fechamento'
                             };
 
                             resp.status(400).json(msg);
                             return;
                         }else if(qry.length > 1){
                             let msg = {
-                                error: 'Checkpoint de fechamento já criado'
+                                error: 'Sprint já possui checkpoint de fechamento'
                             };
 
                             resp.status(400).json(msg);
@@ -166,23 +166,43 @@ module.exports = function (app) {
                             totalIssues: 0,
                             totalPoints: 0,
                             finishedIssues: 0,
-                            finishedPoins:0
+                            finishedPoints:0,
+                            sprints: []
                         },
                         issue = null;
 
                         for(let i = 0 ; i < qry.length; i++){
+                            issuesTotals.sprints.push({
+                                sprintID: qry[i].sprintID,
+                                totalIssues: 0,
+                                totalPoints: 0,
+                                finishedIssues: 0,
+                                finishedPoints:0
+                            });
                             for(let x = 0; x < qry[i].issues.length; x++){
                                 issue = qry[i].issues[x];
+
+                                issuesTotals.sprints[i].totalIssues++;
+                                issuesTotals.sprints[i].totalPoints += issue.storyPoints;
 
                                 issuesTotals.totalIssues++;
                                 issuesTotals.totalPoints += issue.storyPoints;
 
                                 if(issue.status === 'Em Produção' || issue.status === 'Concluído por TI'){
+                                    issuesTotals.sprints[i].finishedIssues++;
+                                    issuesTotals.sprints[i].finishedPoints += issue.storyPoints;
+
                                     issuesTotals.finishedIssues++;
-                                    issuesTotals.finishedPoins += issue.storyPoints;
+                                    issuesTotals.finishedPoints += issue.storyPoints;
                                 }
                             }
+
+                            issuesTotals.sprints[i].totalPoints = Math.round(issuesTotals.sprints[i].totalPoints + 0.00001) * 100 /100;
+                            issuesTotals.sprints[i].finishedPoints = Math.round(issuesTotals.sprints[i].finishedPoints + 0.00001) * 100 /100;
                         }
+
+                        issuesTotals.totalPoints = Math.round(issuesTotals.totalPoints + 0.00001) * 100 /100;
+                        issuesTotals.finishedPoints = Math.round(issuesTotals.finishedPoints + 0.00001) * 100 /100;
 
                         resp.status(201).json(issuesTotals);
                     },
